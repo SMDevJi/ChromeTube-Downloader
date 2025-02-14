@@ -26,7 +26,7 @@ In 2020, GitHub reinstated youtube-dl after verifying that its use for legal pur
 To avoid issues with YouTube or Google accounts, it is advised to use ChromeTube Downloader on a separate browser profile or an entirely different browser. This minimizes the risk of account restrictions or other potential problems.
 
 ## Installation
-1. Download the ChromeTube Downloader extension from [releases]() and extract it.
+1. Download the ChromeTube Downloader extension from [releases](https://github.com/SMDevJi/ChromeTube-Downloader/releases) and extract it.
 2. Open Chrome and navigate to `chrome://extensions/`.
 3. Enable "Developer mode" (toggle at the top right).
 4. Click "Load unpacked" and select the extension folder.
