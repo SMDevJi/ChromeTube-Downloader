@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video and Audio Qualities</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            height: 400px;
+            width: 700px;
+        }
+
+        .video-quality-container {
+            background-color: #fff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .quality-section {
+            margin-bottom: 20px;
+        }
+
+        .quality-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .video-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .video-info img {
+            width: 160px;
+            /* Increased width */
+            height: 120px;
+            /* Increased height */
+            margin-right: 15px;
+        }
+
+        .video-info .video-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .video-info .video-length {
+            margin-left: 15px;
+            font-size: 16px;
+            color: #555;
+            align-self: flex-start;
+        }
+
+        .video-quality-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px 0;
+            border-top: 1px solid #ddd;
+            /* Divider line */
+        }
+
+        .video-quality-item:first-child {
+            border-top: none;
+            /* No border for the first item */
+        }
+
+        .quality-text {
+            flex: 1;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .broken-audio-icon {
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            display: inline-block;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/4024/4024569.png');
+            background-size: cover;
+        }
+
+        .button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Video Download Button */
+        .download-btn-video {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .download-btn-video:hover {
+            background-color: #0056b3;
+        }
+
+        /* Audio Download Button */
+        .download-btn-audio {
+            background-color: #ff9900;
+            color: white;
+        }
+
+        .download-btn-audio:hover {
+            background-color: #e68a00;
+        }
+
+        /* Video without Audio Download Button */
+        .download-btn-video-noaudio {
+            background-color: #ff6666;
+            color: white;
+        }
+
+        .download-btn-video-noaudio:hover {
+            background-color: #e65c5c;
+        }
+
+        /* Merge with Audio Button */
+        .merge-btn {
+            background-color: #28a745;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .merge-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>YouTube Video and Audio Qualities</h1>
+
+    <!-- Video Info Section -->
+    <div class="video-info">
+        <img src="https://i.ytimg.com/vi/Wg92RrNhB8s/sddefault.jpg" alt="Video Thumbnail">
+        <!-- Thumbnail placeholder -->
+        <div>
+            <div class="video-title">Ariana Grande - One Last Time (Official Lyric Video)</div> <!-- Video Title -->
+            <div class="video-length">Length: 00:10:30</div> <!-- Video Length -->
+        </div>
+    </div>
+
+    <!-- Video Quality Section -->
+    <div class="video-quality-container">
+        <div class="quality-section">
+            <div class="quality-header">Available Video Qualities:</div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">1080p HD</span>
+                <button class="button download-btn-video">Download</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">720p HD</span>
+                <button class="button download-btn-video">Download</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">480p SD</span>
+                <button class="button download-btn-video">Download</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">360p</span>
+                <button class="button download-btn-video">Download</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">144p</span>
+                <button class="button download-btn-video">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Quality Section -->
+    <div class="video-quality-container">
+        <div class="quality-section">
+            <div class="quality-header">Available Audio Qualities:</div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">256kbps</span>
+                <button class="button download-btn-audio">Download</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">192kbps</span>
+                <button class="button download-btn-audio">Download</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">128kbps</span>
+                <button class="button download-btn-audio">Download</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">64kbps</span>
+                <button class="button download-btn-audio">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video without Audio Section -->
+    <div class="video-quality-container">
+        <div class="quality-section">
+            <div class="quality-header">Available Video without Audio Qualities:</div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">1080p HD <span class="broken-audio-icon"></span></span>
+                <button class="button download-btn-video-noaudio">Download</button>
+                <button class="button merge-btn">Merge with Audio</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">720p HD <span class="broken-audio-icon"></span></span>
+                <button class="button download-btn-video-noaudio">Download</button>
+                <button class="button merge-btn">Merge with Audio</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">480p SD <span class="broken-audio-icon"></span></span>
+                <button class="button download-btn-video-noaudio">Download</button>
+                <button class="button merge-btn">Merge with Audio</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">360p <span class="broken-audio-icon"></span></span>
+                <button class="button download-btn-video-noaudio">Download</button>
+                <button class="button merge-btn">Merge with Audio</button>
+            </div>
+
+            <div class="video-quality-item">
+                <span class="quality-text">144p <span class="broken-audio-icon"></span></span>
+                <button class="button download-btn-video-noaudio">Download</button>
+                <button class="button merge-btn">Merge with Audio</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

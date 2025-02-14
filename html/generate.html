@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
+    }
+
+    .video-quality-container {
+      background-color: #fff;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .quality-section {
+      margin-bottom: 20px;
+    }
+
+    .quality-header {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .video-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .video-info img {
+      width: 160px;
+      /* Increased width */
+      height: 120px;
+      /* Increased height */
+      margin-right: 15px;
+    }
+
+    .video-info .video-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .video-info .video-length {
+      margin-left: 15px;
+      font-size: 16px;
+      color: #555;
+      align-self: flex-start;
+    }
+
+    .video-quality-item {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+      padding: 8px 0;
+      border-top: 1px solid #ddd;
+      /* Divider line */
+    }
+
+    .video-quality-item:first-child {
+      border-top: none;
+      /* No border for the first item */
+    }
+
+    .quality-text {
+      flex: 1;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .broken-audio-icon {
+      width: 20px;
+      height: 20px;
+      margin-left: 10px;
+      display: inline-block;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/4024/4024569.png');
+      background-size: cover;
+    }
+
+    .button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    /* Video Download Button */
+    .download-btn-video {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .download-btn-video:hover {
+      background-color: #0056b3;
+    }
+
+    /* Audio Download Button */
+    .download-btn-audio {
+      background-color: #ff9900;
+      color: white;
+    }
+
+    .download-btn-audio:hover {
+      background-color: #e68a00;
+    }
+
+    /* Video without Audio Download Button */
+    .download-btn-video-noaudio {
+      background-color: #ff6666;
+      color: white;
+    }
+
+    .download-btn-video-noaudio:hover {
+      background-color: #e65c5c;
+    }
+
+    /* Merge with Audio Button */
+    .merge-btn {
+      background-color: #28a745;
+      color: white;
+      margin-left: 10px;
+    }
+
+    .merge-btn:hover {
+      background-color: #218838;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="magic"></div>
+</body>
+
+<script>
+
+  function generateVideoPageHTML(videoDetails) {
+    // Create a header for the page
+    let htmlContent = `<h1>YouTube Video and Audio Qualities</h1>`;
+
+    // Create the video info container (thumbnail, title, length)
+    htmlContent += `
+      <div class="video-info">
+        <img src="${videoDetails.thumbnailUrl}" alt="Video Thumbnail">
+        <div>
+          <div class="video-title">${videoDetails.title}</div>
+          <div class="video-length">Length: ${videoDetails.length}</div>
+        </div>
+      </div>
+    `;
+
+    // Function to generate quality section (audio, video, video no audio)
+    function createQualitySectionHTML(title, qualityList, isAudio) {
+      let sectionHTML = `<div class="video-quality-container">
+                          <div class="quality-header">${title}</div>`;
+
+      qualityList.forEach(quality => {
+        sectionHTML += `
+          <div class="video-quality-item">
+            <span class="quality-text">${quality.name}
+              ${quality.isNoAudio ? `<span class="broken-audio-icon"></span>` : ''}
+            </span>
+            <a href="${quality.link}" download>
+            <button class="button ${isAudio ? 'download-btn-audio' : (quality.isNoAudio ? 'download-btn-video-noaudio' : 'download-btn-video')}">
+              Download
+            </button>
+            </a>
+            ${quality.isNoAudio ? `<button class="button merge-btn">Merge with Audio</button>` : ''}
+          </div>
+        `;
+      });
+
+      sectionHTML += `</div>`;
+
+
+      return sectionHTML;
+    }
+
+    // Add sections for Video, Audio, and Video without Audio qualities
+    htmlContent += createQualitySectionHTML('Available Video Qualities:', videoDetails.videoQualities, false);
+    htmlContent += createQualitySectionHTML('Available Audio Qualities:', videoDetails.audioQualities, true);
+    htmlContent += createQualitySectionHTML('Available Video without Audio Qualities:', videoDetails.videoWithoutAudioQualities, false);
+
+    // Return the final HTML content as a string
+    return htmlContent;
+  }
+
+  // Sample video details argument
+  const videoDetails = {
+    title: "Ariana Grande - One Last Time (Official Lyric Video)",
+    length: "00:10:30",
+    thumbnailUrl: "https://i.ytimg.com/vi/Wg92RrNhB8s/sddefault.jpg",
+    videoQualities: [
+      { name: "1080p HD", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "720p HD", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "480p SD", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "360p", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "144p", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+    ],
+    audioQualities: [
+      { name: "256kbps", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "192kbps", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "128kbps", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "64kbps", isNoAudio: false, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+    ],
+    videoWithoutAudioQualities: [
+      { name: "1080p HD", isNoAudio: true, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "720p HD", isNoAudio: true, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "480p SD", isNoAudio: true, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "360p", isNoAudio: true, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+      { name: "144p", isNoAudio: true, link: "https://cdn-icons-png.flaticon.com/512/4024/4024569.png" },
+    ],
+  };
+
+  // Example usage:
+  const htmlContent = generateVideoPageHTML(videoDetails);
+  console.log(htmlContent);
+  document.getElementById('magic').innerHTML = htmlContent;
+
+  document.getElementById('magic').querySelectorAll('.merge-btn').forEach(singleMergeBtn => {
+    singleMergeBtn.addEventListener('click', (e) => {
+      console.log(e.target.previousElementSibling.href)
+    })
+  })
+
+
+
+
+
+
+
+  /*
+  <a href="/images/myw3schoolsimage.jpg" download>
+    <button class="button download-btn-video">Download</button>
+  </a>
+  
+  
+  
+  var link = document.createElement('a');
+  link.href = '/images/myw3schoolsimage.jpg';
+  link.download = '';
+  
+  var button = document.createElement('button');
+  button.classList.add('button', 'download-btn-video');
+  button.textContent = 'Download';
+  
+  link.appendChild(button);
+  
+  
+  */
+
+</script>
+
+</html>

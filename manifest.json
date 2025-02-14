@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "ChromeTube Downloader",
+  "version": "2.0.0",
+  "author": "SMDevJi",
+  "description": "This extension helps download from YouTube",
+  "action": {
+    "default_popup": "/html/popup.html",
+    "default_icon": "/images/logo.png",
+    "default_title": "Download this video.."
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; child-src 'self';"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://youtube.com/*",
+        "https://*.youtube.com/*",
+        "https://youtu.be/*",
+        "http://youtube.com/*",
+        "http://*.youtube.com/*",
+        "http://youtu.be/*"
+      ],
+      "js": [
+        "/js/contentscript.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "icons": {
+    "128": "/images/logo.png"
+  },
+  "background": {
+    "service_worker": "/js/background.js"
+  },
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "bookmarks",
+    "contextMenus",
+    "downloads",
+    "nativeMessaging",
+    "userScripts"
+  ],
+  "options_ui": {
+    "page": "html/options.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "html/*",
+        "lib/*",
+        "junk/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ]
+}

@@ -1,0 +1,121 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    max-height: 400px;
+    width: 650px;
+}
+
+
+
+
+
+
+.video-quality-container {
+    background-color: #fff;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  .quality-section {
+    margin-bottom: 20px;
+  }
+  .quality-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .video-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .video-info img {
+    width: 160px;  /* Increased width */
+    height: 120px; /* Increased height */
+    margin-right: 15px;
+  }
+  .video-info .video-title {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .video-info .video-length {
+    margin-left: 15px;
+    font-size: 16px;
+    color: #555;
+    align-self: flex-start;
+  }
+  .video-length{
+    margin-left: 0px !important;
+    margin-top: 5px;
+  }
+  .video-quality-item {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+    padding: 8px 0;
+    border-top: 1px solid #ddd; /* Divider line */
+  }
+  .video-quality-item:first-child {
+    border-top: none; /* No border for the first item */
+  }
+  .quality-text {
+    flex: 1;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
+  .broken-audio-icon {
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+    display: inline-block;
+    background-image: url('/images/no-audio.png');
+    background-size: cover;
+  }
+  .button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+  }
+  /* Video Download Button */
+  .download-btn-video,.fetch-link-btn {
+    background-color: #007bff;
+    color: white;
+  }
+  .download-btn-video:hover,.fetch-link-btn:hover {
+    background-color: #0056b3;
+  }
+
+  /* Audio Download Button */
+  .download-btn-audio {
+    background-color: #ff9900;
+    color: white;
+  }
+  .download-btn-audio:hover {
+    background-color: #e68a00;
+  }
+
+  /* Video without Audio Download Button */
+  .download-btn-video-noaudio {
+    background-color: #ff6666;
+    color: white;
+  }
+  .download-btn-video-noaudio:hover {
+    background-color: #e65c5c;
+  }
+
+  /* Merge with Audio Button */
+  .merge-btn ,.mp3-btn{
+    background-color: #28a745;
+    color: white;
+    margin-left: 10px;
+  }
+  .merge-btn:hover,.mp3-btn:hover {
+    background-color: #218838;
+  }
