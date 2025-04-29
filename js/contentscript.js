@@ -100,6 +100,18 @@ function deleteDataDiv(divId) {
   }
 }
 
+function extractVisitorData(html) {
+  // Regular expression to find visitorData value within quotes
+  const regex = /"visitorData":"(.*?)"/;
+  const match = html.match(regex);
+
+  // If match is found, return the extracted value; otherwise, return null
+  if (match && match[1]) {
+      return match[1];
+  } else {
+      return null; // Return null if no visitorData is found
+  }
+}
 
 
 
@@ -239,7 +251,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         sendResponse({ data: { error: "VIDEO_NOT_PLAYING" } });
       } else {
         maxRetry = 4;
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < maxRetry; i++) {
           //console.log(`${i + 1}th Try..`)
           response = await fetch(`https://${window.location.hostname}/youtubei/v1/player?prettyPrint=false`, {
             method: 'POST',
@@ -257,6 +269,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                   'osName': 'Android',
                   'osVersion': '12L',
                   'androidSdkVersion': '32',
+                  'visitorData': extractVisitorData(document.body.innerHTML),
                 }
               },
               'videoId': videoId,

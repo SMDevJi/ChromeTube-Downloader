@@ -1409,7 +1409,6 @@ function extractVisitorData(html) {
 
 
 
-
 function generateVideoPageHTML(videoDetails) {
     // Create a header for the page
     let htmlContent = `<h1>YouTube Video and Audio Qualities</h1>`;
@@ -1530,6 +1529,11 @@ async function sendMessageToContent(message) {
         let watchTxt = await watchHtml.text()
         //console.log(watchTxt)
         videoInfo = extractYtInitialPlayerResponse(watchTxt)
+        if((!videoInfo.streamingData.adaptiveFormats[0].url && !videoInfo.streamingData.adaptiveFormats[0].signatureCipher) || (!videoInfo.streamingData.formats[0].url && !videoInfo.streamingData.formats[0].signatureCipher)){
+            console.log("No URL or signatureCipher present..")
+            //Temporary patch applied, if stops working, will think later
+            //videoInfo=await extractYtInitialPlayerResponseFromAPI(fpdVideoId,extractVisitorData(watchTxt))
+        }
 
         visitorD = extractVisitorData(watchTxt)
         visitorData = visitorD
@@ -1741,7 +1745,7 @@ with open("ptExtractor.py", "wb") as f:
 
                                 if (initPlayerData.streamingData.adaptiveFormats) {
 
-                                    //console.log(initPlayerData.streamingData)
+                                    console.log(initPlayerData.streamingData)
                                     let ipdIndex = 0
                                     for (const format of initPlayerData.streamingData.adaptiveFormats) {
 
