@@ -45,15 +45,7 @@ SOFTWARE.
 
 
 
-
-
-
-
-
-
-
-
-
+#This part is from https://github.com/JuanBindez/pytubefix/blob/main/pytubefix/jsinterp.py
 
 import collections
 import contextlib
@@ -497,6 +489,7 @@ _ALL_OPERATORS = {**_OPERATORS,  **_UNARY_OPERATORS_X}
 _NAME_RE = r'[a-zA-Z_$][\w$]*'
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
 _QUOTES = '\'"/'
+_NESTED_BRACKETS = r'[^[\]]+(?:\[[^[\]]+(?:\[[^\]]+\])?\])?'
 
 
 class JS_Undefined:
@@ -530,7 +523,7 @@ class LocalNameSpace(collections.ChainMap):
     def __delitem__(self, key):
         raise NotImplementedError('Deleting is not supported')
 
-def _extract_player_js_global_var(jscode):
+def extract_player_js_global_var(jscode):
     global_var = re.search(
         r'''(?x)
             (?P<q1>["\'])use\s+strict(?P=q1);\s*
@@ -545,12 +538,12 @@ def _extract_player_js_global_var(jscode):
         ''', jscode)
 
     if global_var:
-        return global_var.group('code')
+        return global_var.group('code'), global_var.group("name"), global_var.group("value")
     else:
-        return None
+        return None, None, None
 
 def _fixup_n_function_code(argnames, code, full_code):
-    global_var = _extract_player_js_global_var(full_code)
+    global_var, _, _ = extract_player_js_global_var(full_code)
     if global_var:
         code = global_var + '; ' + code
 
@@ -944,24 +937,25 @@ class JSInterpreter:
         if not expr:
             return None, should_return
 
-        reg = fr'''(?x)
+        m = re.match(fr'''(?x)
             (?P<assign>
-                (?P<out>{_NAME_RE})(?:\[(?P<index>[^\]]+?)\])?\s*
+                (?P<out>{_NAME_RE})(?:\[(?P<index>{_NESTED_BRACKETS})\])?\s*
                 (?P<op>{"|".join(map(re.escape, set(_OPERATORS) - _COMP_OPERATORS))})?
                 =(?!=)(?P<expr>.*)$
             )|(?P<return>
                 (?!if|return|true|false|null|undefined|NaN)(?P<name>{_NAME_RE})$
+            )|(?P<attribute>
+                (?P<var>{_NAME_RE})(?:
+                    (?P<nullish>\?)?\.(?P<member>[^(]+)|
+                    \[(?P<member2>{_NESTED_BRACKETS})\]
+                )\s*
             )|(?P<indexing>
                 (?P<in>{_NAME_RE})\[(?P<idx>.+)\]$
-            )|(?P<attribute>
-                (?P<var>{_NAME_RE})(?:(?P<nullish>\?)?\.(?P<member>[^(]+)|\[(?P<member2>[^\]]+)\])\s*
             )|(?P<function>
                 (?P<fname>{_NAME_RE})\((?P<args>.*)\)$
-            )'''
-        m = re.match(reg, expr)
+            )''', expr)
         if m and m.group('assign'):
-            out = m.group('out')
-            left_val = local_vars.get(out)
+            left_val = local_vars.get(m.group('out'))
 
             if not m.group('index'):
                 local_vars[m.group('out')] = self._operator(
@@ -1034,7 +1028,7 @@ class JSInterpreter:
                 if obj is NO_DEFAULT:
                     if variable not in self._objects:
                         try:
-                            self._objects[variable] = self.extract_object(variable)
+                            self._objects[variable] = self.extract_object(variable, local_vars)
                         except self.Exception:
                             if not nullish:
                                 raise
@@ -1183,7 +1177,7 @@ class JSInterpreter:
         code = global_var.group('val')
         return code
 
-    def extract_object(self, objname):
+    def extract_object(self, objname, *global_stack):
         _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
         obj = {}
         obj_m = re.search(
@@ -1197,14 +1191,16 @@ class JSInterpreter:
             raise self.Exception(f'Could not find object {objname}')
         fields = obj_m.group('fields')
         # Currently, it only supports function definitions
-        r = r'''(?x)
+        fields_m = re.finditer(
+            r'''(?x)
                 (?P<key>%s)\s*:\s*function\s*\((?P<args>(?:%s|,)*)\){(?P<code>[^}]+)}
-            ''' % (_FUNC_NAME_RE, _NAME_RE)
-        fields_m = re.finditer(r, fields)
+            ''' % (_FUNC_NAME_RE, _NAME_RE),
+            fields)
         for f in fields_m:
             argnames = f.group('args').split(',')
             name = remove_quotes(f.group('key'))
-            obj[name] = function_with_repr(self.build_function(argnames, f.group('code')), f'F<{name}>')
+            obj[name] = function_with_repr(
+                self.build_function(argnames, f.group('code'), *global_stack), f'F<{name}>')
 
         return obj
 
@@ -1272,14 +1268,7 @@ class JSInterpreter:
 
 
 
-
-
-
-
-
-
-
-
+#get_initial_function_name() and  get_throttling_function_name() are from https://github.com/JuanBindez/pytubefix/blob/main/pytubefix/cipher.py
 
 def get_initial_function_name(js):
     """Extract the name of the function responsible for computing the signature.
@@ -1307,14 +1296,14 @@ def get_initial_function_name(js):
         r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
         r'\bc\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('
     ]
-    #print("finding initial function name")
+    print("looking for signature cipher name")
     for pattern in function_patterns:
         regex = re.compile(pattern)
         function_match = regex.search(js)
         if function_match:
-            sig = function_match.group(1)
-            #print("finished regex search, matched: %s", pattern)
-            #print(f'Signature cipher function name: {sig}')
+            sig = function_match.group('sig')
+            print("finished regex search, matched: %s", pattern)
+            print(f'Signature cipher function name: {sig}')
             return sig
 
     raise RegexMatchError(
@@ -1333,39 +1322,37 @@ def get_throttling_function_name(js):
     :returns:
         The name of the function used to compute the throttling parameter.
     """
-    function_patterns = [
-        # https://github.com/ytdl-org/youtube-dl/issues/29326#issuecomment-865985377
-        # https://github.com/yt-dlp/yt-dlp/commit/48416bc4a8f1d5ff07d5977659cb8ece7640dcd8
-        # var Bpa = [iha];
-        # ...
-        # a.C && (b = a.get("n")) && (b = Bpa[0](b), a.set("n", b),
-        # Bpa.length || iha("")) }};
-        # In the above case, `iha` is the relevant function name
-        # r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&\s*'
-        # r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)',
 
-        # New pattern added on July 9, 2024
-        # https://github.com/yt-dlp/yt-dlp/pull/10390/files
-        # In this example we can find the name of the function at index "0" of "IRa"
-        # a.D && (b = String.fromCharCode(110), c = a.get(b)) && (c = IRa[0](c), a.set(b,c), IRa.length || Ima(""))
-        # r'(?:\.get\(\"n\"\)\)&&\(b=|b=String\.fromCharCode\(\d+\),c=a\.get\(b\)\)&&\(c=)([a-zA-Z0-9$]+)(?:\[('r'\d+)\])?\([a-zA-Z0-9]\)'
+    print("looking for nsig name")
+    try:
+        # Extracts the function name based on the global array
+        global_obj, varname, code = extract_player_js_global_var(js)
+        if global_obj and varname and code:
+            print(f"Global Obj name is: {varname}")
+            global_obj = JSInterpreter(js).interpret_expression(code, {}, 100)
+            print("Successfully interpreted global object")
+            for k, v in enumerate(global_obj):
+                if v.endswith('_w8_'):
+                    print(f"_w8_ found in index {k}")
+                    pattern = r'''(?xs)
+                            [;\n](?:
+                                (?P<f>function\s+)|
+                                (?:var\s+)?
+                            )(?P<funcname>[a-zA-Z0-9_$]+)\s*(?(f)|=\s*function\s*)
+                            \((?P<argname>[a-zA-Z0-9_$]+)\)\s*\{
+                            (?:(?!\}[;\n]).)+
+                            \}\s*catch\(\s*[a-zA-Z0-9_$]+\s*\)\s*
+                            \{\s*return\s+%s\[%d\]\s*\+\s*(?P=argname)\s*\}\s*return\s+[^}]+\}[;\n]
+                        '''  % (re.escape(varname), k)
+                    func_name = re.search(pattern, js)
+                    if func_name:
+                        n_func = func_name.group("funcname")
+                        print(f"Nfunc name is: {n_func}")
+                        return n_func
+    except:
+        pass
 
-        # New pattern added on July 23, 2024
-        # https://github.com/yt-dlp/yt-dlp/pull/10542
-        # a.D && (b = "nn"[+a.D], c = a.get(b)) && (c = rDa[0](c), a.set(b,c), rDa.length || rma(""))
-        # r'(?:\.get\("n"\)\)&&\(b=|(?:b=String\.fromCharCode\(110\)|([a-zA-Z0-9$.]+)&&\(b="nn"\[\+\1\]),c=a\.get\(b\)\)&&\(c=)(?P<nfunc>[a-zA-Z0-9$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z0-9]\)'
-
-        # New pattern used in player "20dfca59" on July 29, 2024
-        # a.D && (PL(a), b = a.j.n || null) && (b = oDa[0](b), a.set("n", b), oDa.length || rma(""))
-        # Regex logic changed based on old players, n_func can easily be found after ".length ||",
-        # in this case n_func is "rma"
-        # Before this regex, we got the function inside the idx 0 of "oDa"
-        # r'[abc]=(?P<func>[a-zA-Z0-9$]+)\[(?P<idx>\d+)\]\([abc]\),a\.set\([a-zA-Z0-9$\",]+\),'
-        # r'[a-zA-Z0-9$]+\.length\|\|(?P<n_func>[a-zA-Z0-9$]+)\(\"\"\)'
-
-        # New pattern used in player "2f238d39" on October 10, 2024
-        # a.D && (b = "nn" [+a.D], zM(a), c = a.j[b] || null) && (c = XDa[0](c), a.set(b, c))
-        r'''(?x)
+    pattern = r'''(?x)
             (?:
                 \.get\("n"\)\)&&\(b=|
                 (?:
@@ -1381,72 +1368,34 @@ def get_throttling_function_name(js):
                 \b(?P<var>[a-zA-Z0-9_$]+)=
             )(?P<nfunc>[a-zA-Z0-9_$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z]\)
             (?(var),[a-zA-Z0-9_$]+\.set\((?:"n+"|[a-zA-Z0-9_$]+)\,(?P=var)\))'''
-    ]
-    #print('Finding throttling function name')
-    for pattern in function_patterns:
-        regex = re.compile(pattern)
-        function_match = regex.search(js)
-        if function_match:
-            #print("finished regex search, matched: %s", pattern)
 
-            func = function_match.group('nfunc')
-            idx = function_match.group('idx')
+    print('Finding throttling function name')
 
-            #print(f'func is: {func}')
-            #print(f'idx is: {idx}')
+    regex = re.compile(pattern)
+    function_match = regex.search(js)
+    if function_match:
+        print("finished regex search, matched: %s", pattern)
 
-            #print('Checking throttling function name')
-            if idx:
-                n_func_check_pattern = fr'var {re.escape(func)}\s*=\s*\[(.+?)];'
-                n_func_found = re.search(n_func_check_pattern, js)
+        func = function_match.group('nfunc')
+        idx = function_match.group('idx')
 
-                if n_func_found:
-                    throttling_function = n_func_found.group(1)
-                    #print(f'Throttling function name is: {throttling_function}')
-                    return throttling_function
+        print(f'func is: {func}')
+        print(f'idx is: {idx}')
 
-                raise RegexMatchError(
-                    caller="get_throttling_function_name", pattern=f"{n_func_check_pattern} in {js_url}"
-                )
+        print('Checking throttling function name')
+        if idx:
+            n_func_check_pattern = fr'var {re.escape(func)}\s*=\s*\[(.+?)];'
+            n_func_found = re.search(n_func_check_pattern, js)
+
+            if n_func_found:
+                throttling_function = n_func_found.group(1)
+                print(f'Throttling function name is: {throttling_function}')
+                return throttling_function
+
+            raise RegexMatchError(
+                caller="get_throttling_function_name", pattern=f"{n_func_check_pattern} in {js_url}"
+            )
 
     raise RegexMatchError(
-        caller="get_throttling_function_name", pattern=f"multiple in {js_url}"
+        caller="get_throttling_function_name", pattern=f"{pattern} in {js_url}"
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-import requests
-js=requests.get("https://www.youtube.com/s/player/19d2ae9d/player_ias.vflset/en_US/base.js").text
-
-sig="qJfAJfQdSAwRQIgAPssR-u8gADwQxxpS2ap-WCZcEPHRLKrRuqFhUgMbr4CIQDwSrYWfs6YE4TifQvBBH4NoIEJRhBul2aXcLxTmA1NIw======"
-n="8GCXdWJFpGjwtr"
-
-
-
-sigFunc=get_initial_function_name(js)
-nFunc=get_throttling_function_name(js)
-
-print(sigFunc,nFunc)
-
-js_interpreter=JSInterpreter(js)
-
-calculatedSig=js_interpreter.call_function(sigFunc, sig)
-print(calculatedSig)
-
-calculatedN=js_interpreter.call_function(nFunc, n)
-print(calculatedN)
-'''
